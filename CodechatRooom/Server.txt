@@ -1,0 +1,47 @@
+package network;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+
+public class Server {
+	public Server(){
+		
+		try {	
+			//moi 1 cong ket noi 
+	ServerSocket ss = new ServerSocket(1234);
+	System.out.println("Server open port 1234");
+	// ket noi voi client
+	Socket s = ss.accept();
+	System.out.println("Ket noi voi client");
+	InputStream is= s.getInputStream(); //nhan du lien 
+	OutputStream os=s.getOutputStream();//gui du lieu
+	// nhan 1 ky tu
+	
+	int ch=is.read();
+	System.out.print("Server Nhan:"+(char)ch);
+	
+	//gui 1 ky tu
+	System.out.println("Gui");
+	int ch2 = System.in.read();
+	os.write(ch2);
+	}
+		
+	catch(IOException ex)
+	   {
+	}
+		
+}
+
+public static void main (String[] args){
+		Server a = new Server();
+		
+		
+		
+	}
+	
+	
+
+}
