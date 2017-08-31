@@ -1,0 +1,83 @@
+package network;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.Scanner;
+
+public class Server {
+	public Server(){
+		
+		try {	
+			//moi 1 cong ket noi 
+	ServerSocket ss = new ServerSocket(1234);
+	System.out.println("Server open port 1234");
+	// ket noi voi client
+	Socket s = ss.accept();
+	System.out.println("Ket noi voi client");
+	//String ip = Socket.getInetAddress().getHostAddress(); lay ip cua may client
+	//InputStream is= s.getInputStream(); //nhan du lien 
+	BufferedReader read = new BufferedReader( new InputStreamReader(s.getInputStream()));
+	BufferedWriter write = new BufferedWriter( new OutputStreamWriter(s.getOutputStream()));
+	//OutputStream os=s.getOutputStream();//gui du lieu
+	Thread  T_read = new Thread(new Runnable(){
+		
+		public void run(){
+			
+			while(true){
+				try {
+					String mes = read.readLine();
+					if(mes!=null && !mes.isEmpty())
+					{
+						System.out.println(mes);
+					}
+				}
+				catch(IOException ex)	{
+					
+					
+				}
+							
+			}
+			
+		}
+		
+	});
+	T_read.start();
+	
+	while(true){
+		System.out.println("Server:");
+		String mes = new Scanner(System.in).nextLine();
+		write.write(mes);		
+		write.newLine();
+		write.flush();
+	}
+	
+	
+	// nhan 1 ky tu
+	
+	//int ch=is.read();
+//	System.out.print("Server Nhan:"+(char)ch);
+	
+	//gui 1 ky tu
+	//System.out.println("Gui");
+	//int ch2 = System.in.read();
+	//os.write(ch2);
+	}
+		
+	catch(IOException ex)
+	   {
+	}
+		
+}
+
+public static void main (String[] args){
+		Server a = new Server();
+	}
+	
+	
+
+}
