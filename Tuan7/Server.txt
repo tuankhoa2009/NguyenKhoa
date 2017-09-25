@@ -1,0 +1,125 @@
+package Test;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Scanner;
+
+public class TestServer {
+
+	ServerSocket ss ;
+	Socket s;
+	//ArrayList <PrintWriter> listsoc ;
+	ArrayList <Socket> listsoc ;
+	public static void main(String[] args)  {
+		TestServer ts = new TestServer();
+		 if (ts.runServer()) {
+             ts.listenToClient();
+     } else {
+            System.out.println("Ket noi voi may chu bi ngat");
+     }
+		
+
+		 
+	}
+		public class ClientHandler implements Runnable{
+			Socket s;
+			BufferedReader read;
+			
+			
+			public ClientHandler (Socket s){
+				try {
+					this.s=s;
+				read  =	 new BufferedReader( new InputStreamReader(s.getInputStream()));
+				}
+				catch (IOException e){
+					e.printStackTrace();
+				}			
+			}
+			@Override
+			public void run() {
+		String mes;
+				try{
+					while((mes =read.readLine()) != null) {// nhan chuoi tu client
+						System.out.println(mes);
+						sendToAllClient(mes);
+					}
+				}catch (IOException e) {
+                    e.printStackTrace();
+            }
+				
+			}
+			
+		}
+		
+		public void listenToClient(){
+			while(true){
+				try{
+					Socket s = ss.accept();
+					PrintWriter writer = new PrintWriter(s.getOutputStream());
+					listsoc.add(s);
+					System.out.println("Client ket noi "+listsoc.size());
+					Thread clientThread = new Thread(new ClientHandler(s));
+					clientThread.start();
+					
+				} catch(IOException e){
+					e.printStackTrace();
+					
+				}
+				
+				
+			}			
+		}
+		public boolean runServer(){
+		try{
+			 ss = new ServerSocket(7777);
+			System.out.println("Server Open Port 1234");
+			//listsoc = new ArrayList<PrintWriter>();
+			listsoc = new ArrayList<Socket>();
+	//		ArrayList <Socket> listsoc = new ArrayList<Socket>();
+			return true;			
+		}
+		catch(IOException e){
+			System.out.println("Loi trong qua trinh ket noi");
+			e.printStackTrace();
+			return false;
+			}		
+		}
+
+		
+		public void sendToAllClient(String messa) {
+		/*	 Iterator it = listsoc.iterator();
+             
+             while(it.hasNext()) {
+                     PrintWriter writer = (PrintWriter) it.next();
+                     writer.println(messa);
+                     writer.flush();
+                     
+                     
+                     */		
+			for(Socket so:listsoc){
+			if(so==null)
+				listsoc.remove(so);
+			else if(!so.equals(s)){
+				PrintWriter write;
+				try {
+					write = new PrintWriter(so.getOutputStream(),true);
+					write.println(messa); 		
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				 		
+			}					
+		}  
+                     
+             }		
+		}
+
+		
+		
