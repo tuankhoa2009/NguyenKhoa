@@ -1,0 +1,164 @@
+package Test;
+
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Frame;
+import java.awt.Panel;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Scanner;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.ScrollPaneConstants;
+
+public class TestServer {
+
+	JFrame serverFrame;
+	JPanel serverPanel;
+	JTextArea textArea_Messages;
+	JScrollPane scrollPane_Messages;
+	
+	public void createGUI(){
+		serverFrame = new JFrame ("Server");
+		serverFrame.setSize(500, 400);
+		
+		
+		serverPanel = new JPanel();
+		textArea_Messages= new JTextArea();
+    	textArea_Messages.setEditable(false);
+    	
+    	 scrollPane_Messages = new JScrollPane(textArea_Messages);
+         scrollPane_Messages.setPreferredSize(new Dimension(400, 300));
+   //      scrollPane_Messages.setMinimumSize(new Dimension(500, 500));
+        scrollPane_Messages.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+         scrollPane_Messages.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+         
+         
+         serverPanel.add(scrollPane_Messages);
+         
+         serverFrame.getContentPane().add(BorderLayout.CENTER, serverPanel);
+         
+         serverFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+         serverFrame.setVisible(true);
+		
+		
+	}
+	 public void appendTextMessages(String message) {
+	        textArea_Messages.append(message + "\n");
+	}
+	
+	
+	
+	
+	ServerSocket ss ;    //t?o socket cho server
+	Socket s;             //socket   cho client
+	ArrayList <Socket> listsoc ;    //Danh sách ch?a socket
+	
+	public static void main(String[] args)  {
+	
+		TestServer ts = new TestServer();
+		ts.createGUI();
+		 if (ts.runServer()) {
+             ts.listenToClient();
+     } else {
+            System.out.println("Ket noi voi may chu bi ngat");
+     }
+		
+
+		 
+	}
+		public class ClientHandler implements Runnable{
+			Socket s;
+			BufferedReader read;
+			
+			
+			public ClientHandler (Socket s){
+				try {
+					this.s=s;
+				read  =	 new BufferedReader( new InputStreamReader(s.getInputStream())); //lu?ng nh?n tin
+				}
+				catch (IOException e){
+					e.printStackTrace();
+				}			
+			}
+			@Override
+			public void run() {
+		String mes;
+				try{
+					while((mes =read.readLine()) != null) {// Nh?n chu?i t? Client ki?m tra có null không
+						//System.out.println(mes);
+						sendToAllClient(mes);             //G?i d?n t?t c? các Client
+					}
+				}catch (IOException e) {
+                    e.printStackTrace();
+            }
+				
+			}
+			
+		}
+		
+		public void listenToClient(){
+			while(true){
+				try{
+					Socket s = ss.accept();    // Ch?p nh?n khi có k?t n?i 
+					PrintWriter writer = new PrintWriter(s.getOutputStream()); //Lu?ng nh?n tin
+					listsoc.add(s);    //app socket vào danh sách
+					appendTextMessages("Client k?t n?i "+ listsoc.size());
+					Thread clientThread = new Thread(new ClientHandler(s));
+					clientThread.start();
+					
+				} catch(IOException e){
+					e.printStackTrace();
+					
+				}
+				
+				
+			}			
+		}
+		public boolean runServer(){
+		try{
+			 ss = new ServerSocket(7777);  //T?o c?ng k?t n?i port 7777
+			 appendTextMessages("Server Open Port 7777");	 
+			listsoc = new ArrayList<Socket>();       
+			return true;			
+		}
+		catch(IOException e){
+			appendTextMessages("L?i trong quá trình k?t n?i");
+			e.printStackTrace();
+			return false;
+			}		
+		}
+
+		
+		public void sendToAllClient(String messa) { //Hàm g?i d?n all Client
+	
+			for(Socket so:listsoc){    //t?o vòng l?p danh sach socket
+			if(so==null)              //N?u danh sách r?ng
+				listsoc.remove(so);   //xóa danh sách
+			else if(!so.equals(s)){    //N?u danh sách có nhi?u socket
+				PrintWriter write;
+				try {
+					write = new PrintWriter(so.getOutputStream(),true); //Lu?ng g?i tin
+					write.println(messa); 		       //G?i tin nh?n di
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				 		
+			}					
+		}  
+                     
+             }		
+		}
+
+		
+		
